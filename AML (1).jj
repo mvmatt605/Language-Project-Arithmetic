@@ -1,0 +1,155 @@
+PARSER_BEGIN(AML)
+
+   import java.io.*;
+
+   class AML {
+
+      public static void main(String[] args)
+         throws ParseException, TokenMgrError
+      {
+         if (args.length > 0) {
+	    try {
+	       AML scan = new AML(new FileInputStream(args[0]));
+	       scan.Program().eval();
+	    } catch (FileNotFoundException ex) {
+	       System.out.println("File "+args[0]+" not found.");
+	    }
+	 } else {
+	    System.out.println("Must specify source code file name.");
+	 }
+      }
+	
+   } // end class
+
+PARSER_END(AML)
+
+SKIP : { " " | "\t" | "\n" }
+TOKEN : { <INPUT : "enter input for"> }
+TOKEN : { <OUTPUT : "show"> }
+TOKEN : { <ASSIGN : "is"> }
+TOKEN : { <INT : ("0" | ["1"-"9"](["0"-"9"])*)> }
+TOKEN : { <DOT : "."> }
+TOKEN : { <ID : (["A"-"Z"] | ["a"-"z"]) (["A"-"Z"] | ["a"-"z"] | ["0"-"9"] | "_")*> }
+TOKEN : { <LP : "("> }
+TOKEN : { <RP : ")"> }
+TOKEN : { <PLUS : "+"> }
+TOKEN : { <MINUS : "-"> }
+TOKEN : { <TIMES : "*"> }
+TOKEN : { <DIV : "/"> }
+
+Node Assign():
+{
+	Node n;
+	Node c;
+}
+{
+	{n = new AssignNode();}
+	t = <ID> {n.addChild(new IDNode(t.image));}
+	<ASSIGN>
+	c = Exp() {n.addChild(c);}
+	<DOT>
+	{return n; }
+}
+
+Node Input():
+{
+	Node n;
+	Token t;
+}
+{
+	{n = new InputNode();}
+	<INPUT>
+	t= <ID> {n.addChild(new IDNode(t.image)); }
+	<DOT>
+	{ return n; }
+}
+
+Node Output():
+{
+	Node n;
+	Node c;
+}
+{
+	{n = new OutputNode();}
+	<OUTPUT>
+	c = Exp() {n.addChild(c);}
+	<DOT>
+}
+
+Node factor():
+{
+        Node c;
+}
+{
+	(
+	c = <ID> {(new IDNode(c.image)); }
+	|
+	c = <INT> {(new INTNode(c.image)); }
+	|
+	(
+	<LP> 
+	c = Exp() 
+	<RP>
+	)
+	)
+	{ return c; }
+}	
+
+Node Mexp():
+{
+        Node n;
+        Token t;
+	Node c;
+}
+{
+        {n = new ExpNode();}
+        (
+	c = factor() {n.addChild(c);} 
+	(
+	t = <TIMES> {n.addChild(new OpNode(t.image)) ; }
+	|
+	t = <DIV> {n.addChild(new OpNode(t.image)); }
+	)
+	c = factor() {n.addChild(c);}
+	)*
+	{return n;}
+}
+
+Node Exp():
+{
+	Node n;
+	Token t;
+	Node c;
+}
+{
+	{n = new ExpNode();}
+	(
+	c = Mexp() {n.addChild(c);}
+	(
+	t = <PLUS> {n.addChild(new Opnode(t.image)); }
+	| 
+	t = <MINUS> {n.addchild (new Opnode(t.image)); }
+	)
+	c = Mexp() {n.addChild(c);}
+	)*
+	{return n;}
+}
+
+Node Program():
+{
+	Node n;
+	Node c;
+}
+{
+	{n = new BlockNode();}
+	(
+	c = Assign() {n.addChild(c);}
+	|
+	c = Input() {n.addChild(c);}
+	|
+	c = Output() {n.addChild(c);}
+	)+
+	<EOF>
+	{return n;}
+}
+
