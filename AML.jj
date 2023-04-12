@@ -41,6 +41,7 @@ Node Assign():
 {
 	Node n;
 	Node c;
+	Token t;
 }
 {
 	{n = new AssignNode();}
@@ -79,12 +80,13 @@ Node Output():
 Node factor():
 {
         Node c;
+	Token t;
 }
 {
 	(
-	c = <ID> {(new IDNode(c.image)); }
+	t = <ID> {return new IDNode(t.image);}
 	|
-	c = <INT> {(new INTNode(c.image)); }
+	t = <INT> {return new INTNode(t.image); }
 	|
 	(
 	<LP> 
@@ -99,40 +101,39 @@ Node Mexp():
 {
         Node n;
         Token t;
-	Node c;
+        Node c;
 }
 {
         {n = new ExpNode();}
-        (
-	c = factor() {n.addChild(c);} 
-	(
-	t = <TIMES> {n.addChild(new OpNode(t.image)) ; }
-	|
-	t = <DIV> {n.addChild(new OpNode(t.image)); }
-	)
-	c = factor() {n.addChild(c);}
-	)*
-	{return n;}
+        c = factor() {n.addChild(c);}
+        (       
+        t = <TIMES>
+        c = factor() {n.addChild(new OpNode(t.image)); n.addChild(c); }
+        |
+        t = <DIV>
+        c = factor() {n.addChild(new OpNode(t.image));n.addChild(c); }
+        )*
+        {return n;}
 }
 
 Node Exp():
 {
-	Node n;
-	Token t;
-	Node c;
+        Node n;
+        Token t;
+        Node c;
 }
 {
-	{n = new ExpNode();}
-	(
-	c = Mexp() {n.addChild(c);}
-	(
-	t = <PLUS> {n.addChild(new Opnode(t.image)); }
-	| 
-	t = <MINUS> {n.addchild (new Opnode(t.image)); }
-	)
-	c = Mexp() {n.addChild(c);}
-	)*
-	{return n;}
+        {n = new ExpNode();}
+        c = Mexp() {n.addChild(c);}
+        (
+        t = <PLUS>
+        c = Mexp() {n.addChild(new OpNode(t.image));n.addChild(c); }
+        
+        |
+        t = <MINUS>
+        c = Mexp() {n.addChild (new OpNode(t.image));n.addChild(c); }
+        )*
+        {return n;}
 }
 
 Node Program():
