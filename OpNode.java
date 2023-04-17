@@ -1,6 +1,6 @@
 public class OpNode extends Node{
 
-	private String op;
+	public String op;
 
 	public OpNode(String image){
 		op = image;

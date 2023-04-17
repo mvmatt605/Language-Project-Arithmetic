@@ -1,4 +1,10 @@
-enter input for number.
-show number.
-show 42.
-
+x is 3+1.
+show x.
+y is 3*1.
+show y.
+z is 4/2.
+show z.
+l is 3-1.
+show l.
+t is 4/(3-1).
+show t.
